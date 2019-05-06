@@ -2,9 +2,12 @@ os:
   - linux
   - osx
 
-env:
-  - LFTP_SUPPORT=0
-  - LFTP_SUPPORT=1
+# Deactivating running with lftp on OSX while we don't have a good binary for Travis.
+# https://travis-ci.org/git-ftp/git-ftp/jobs/528705890
+# https://stackoverflow.com/questions/48333342/os-x-illegal-instruction-4-in-travis-ci
+#env:
+#  - LFTP_SUPPORT=0
+#  - LFTP_SUPPORT=1
 
 language: sh
 
@@ -12,7 +15,7 @@ install:
   - >
     if [ "$TRAVIS_OS_NAME" = "linux" ]; then
       ./tests/vsftpd-3.0.3.debian7 tests/vsftpd.conf &
-      if [ "$LFTP_SUPPORT" = "1" ]; then sudo apt-get install -y lftp; fi
+      #if [ "$LFTP_SUPPORT" = "1" ]; then sudo apt-get install -y lftp; fi
     fi
   - >
     if [ "$TRAVIS_OS_NAME" = "osx" ]; then
@@ -33,6 +36,11 @@ before_script:
 
 script:
   - tests/git-ftp-test.sh
+  - >
+    if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+      sudo apt-get install -y lftp
+      tests/git-ftp-test.sh
+    fi
   - >
     if grep -H -n -C 1 '^  ' "git-ftp" "tests/git-ftp-test.sh"; then
       echo 'Lines starting with spaces instead of tabs found!'
